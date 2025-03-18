@@ -1,4 +1,4 @@
-module std
+module github.com/ivannajwan22/cloudflare-go
 
 go 1.22
 
