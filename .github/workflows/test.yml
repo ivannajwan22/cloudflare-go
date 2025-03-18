@@ -18,18 +18,22 @@ jobs:
       - name: Verify Environment
         run: |
           echo "Checking bash location..."
-          which bash || echo "bash not found"
-          bash --version || echo "bash not available"
+          ls -l /bin/bash || echo "/bin/bash not found"
+          which bash || echo "bash not in PATH"
+          bash --version || echo "bash not executable"
+          echo "Current PATH: $PATH"
           go version
           go env GOROOT
           go env GOTOOLCHAIN
           go env GOENV
-          echo "PATH=$PATH"
-      - name: Run tests
+      - name: Fix PATH and Run tests
         env:
           GOROOT: /opt/hostedtoolcache/go/1.23.7/x64
-          PATH: /opt/hostedtoolcache/go/1.23.7/x64/bin:$PATH
+          PATH: /bin:/usr/bin:/opt/hostedtoolcache/go/1.23.7/x64/bin:$PATH
           GOTOOLCHAIN: go1.23.7
           GOENV: off
-        run: bash ./all.bash  # Explicitly call with bash
+        run: |
+          echo "Updated PATH: $PATH"
+          bash --version  # Verify bash works
+          bash ./all.bash
         working-directory: src
