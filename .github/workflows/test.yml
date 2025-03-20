@@ -9,39 +9,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      # Checkout kode dari repositori
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Ambil seluruh riwayat untuk memastikan semua file ada
-
-      # Setup Go toolchain
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.23.7'
-
-      # Atur variabel lingkungan untuk GOPATH dan GOROOT
-      - name: Configure Go environment
-        run: |
-          echo "GOROOT=$(go env GOROOT)" >> $GITHUB_ENV
-          echo "GOPATH=/home/runner/work/cloudflare-go/go" >> $GITHUB_ENV
-          echo "$(go env GOROOT)/bin" >> $GITHUB_PATH
-          echo "$GOPATH/bin" >> $GITHUB_PATH
-
-      # Debug: Tampilkan isi direktori root dan src (jika ada)
-      - name: Debug environment
-        run: |
-          go version
-          go env
-          ls -l .
-          ls -l src/ || echo "src directory not found"
-
-      # Jalankan tes Go dari src (jika ada)
       - name: Run tests
-        run: |
-          if [ -d "src" ]; then
-            cd src && go test ./... -v
-          else
-            echo "src directory not found, running tests from root"
-            go test ./... -v
-          fi
+        run: ./all.bash
+        working-directory: src
