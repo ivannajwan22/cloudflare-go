@@ -7,7 +7,7 @@ toolchain go1.24.1
 require (
 	github.com/cloudflare/circl v1.6.0
 	golang.org/x/crypto v0.37.0
-	golang.org/x/net v0.38.0
+	golang.org/x/net v0.39.0
 )
 
 require (
