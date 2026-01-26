@@ -1,5 +1,5 @@
-//go:build (!amd64 && !arm64) || purego
-// +build !amd64,!arm64 purego
+//go:build arm64 && !purego
+// +build arm64,!purego
 
 package dilithium
 
@@ -32,7 +32,7 @@ func (p *Poly) MulHat(a, b *Poly) {
 
 // Sets p to a + b.  Does not normalize polynomials.
 func (p *Poly) Add(a, b *Poly) {
-	p.addGeneric(a, b)
+	polyAddARM64(p, a, b)
 }
 
 // Sets p to a - b.
@@ -40,13 +40,17 @@ func (p *Poly) Add(a, b *Poly) {
 // Warning: assumes coefficients of b are less than 2q.
 // Sets p to a + b.  Does not normalize polynomials.
 func (p *Poly) Sub(a, b *Poly) {
-	p.subGeneric(a, b)
+	polySubARM64(p, a, b)
 }
 
 // Writes p whose coefficients are in [0, 16) to buf, which must be of
 // length N/2.
 func (p *Poly) PackLe16(buf []byte) {
-	p.packLe16Generic(buf)
+	// early bounds so we don't have to in assembly code
+	// compiler may inline this func, so it may remove the bounds check
+	_ = buf[PolyLe16Size-1]
+
+	polyPackLe16ARM64(p, &buf[0])
 }
 
 // Reduces each of the coefficients to <2q.
@@ -77,7 +81,7 @@ func (p *Poly) Exceeds(bound uint32) bool {
 //
 // So it requires the coefficients of p  to be less than 2³²⁻ᴰ.
 func (p *Poly) MulBy2toD(q *Poly) {
-	p.mulBy2toDGeneric(q)
+	polyMulBy2toDARM64(p, q)
 }
 
 // Splits p into p1 and p0 such that [i]p1 * 2ᴰ + [i]p0 = [i]p
@@ -85,5 +89,18 @@ func (p *Poly) MulBy2toD(q *Poly) {
 //
 // Requires the coefficients of p to be normalized.
 func (p *Poly) Power2Round(p0PlusQ, p1 *Poly) {
+	// implementation in assembly follows
 	p.power2RoundGeneric(p0PlusQ, p1)
 }
+
+//go:noescape
+func polyAddARM64(p, a, b *Poly)
+
+//go:noescape
+func polyPackLe16ARM64(p *Poly, buf *byte)
+
+//go:noescape
+func polyMulBy2toDARM64(p, q *Poly)
+
+//go:noescape
+func polySubARM64(p, a, b *Poly)
